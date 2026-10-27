@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual Static Web Apps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fundo:#f7f5f0; --papel:#ffffff; --texto:#1f2328; --suave:#5b6470; --borda:#d9dde3;
+  --azul:#0b62c4; --azul-claro:#e7f0fb; --verde:#1a7f37; --verde-claro:#e6f4ea;
+  --amarelo:#8a6100; --amarelo-claro:#fff6dc; --vermelho:#b42318; --vermelho-claro:#fdecea;
+  --roxo:#6f42c1; --roxo-claro:#f1ebfb; --codigo:#1e1e2e; --codigo-texto:#e6e6f0;
+  --tam:18px; --fonte:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+}
+:root[data-tema="escuro"]{
+  --fundo:#16181d; --papel:#1f232a; --texto:#e8eaed; --suave:#a5adb8; --borda:#353b45;
+  --azul:#6aa8f0; --azul-claro:#1b2a3d; --verde:#5cc27a; --verde-claro:#17301f;
+  --amarelo:#e3b341; --amarelo-claro:#33290f; --vermelho:#f28b82; --vermelho-claro:#3a1d1b;
+  --roxo:#b392f0; --roxo-claro:#2a2140; --codigo:#0f1115;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{margin:0;background:var(--fundo);color:var(--texto);font-family:var(--fonte);font-size:var(--tam);line-height:1.75;letter-spacing:.01em}
+a{color:var(--azul)}
+code{font-family:Consolas,"Cascadia Code",monospace;background:var(--azul-claro);padding:1px 6px;border-radius:6px;font-size:.92em}
+
+/* Barra superior fixa */
+.barra{position:sticky;top:0;z-index:10;background:var(--papel);border-bottom:1px solid var(--borda);padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.barra .titulo{font-weight:700}
+.controles{display:flex;flex-wrap:wrap;gap:6px}
+.controles button{font-family:inherit;font-size:15px;padding:6px 12px;border-radius:8px;border:1px solid var(--borda);background:var(--fundo);color:var(--texto);cursor:pointer}
+.controles button:hover,.controles button[aria-pressed="true"]{border-color:var(--azul);background:var(--azul-claro)}
+.progresso{width:100%;height:10px;background:var(--borda);border-radius:99px;overflow:hidden}
+.progresso div{height:100%;width:0;background:var(--verde);transition:width .4s}
+.progresso-texto{font-size:14px;color:var(--suave);width:100%}
+
+.layout{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:2em;line-height:1.25;margin:24px 0 8px}
+h2{font-size:1.45em;line-height:1.3;margin:0 0 6px}
+h3{font-size:1.1em;margin:24px 0 6px}
+.subtitulo{color:var(--suave);margin-top:0}
+
+/* Índice */
+.indice{background:var(--papel);border:1px solid var(--borda);border-radius:14px;padding:16px 20px}
+.indice ol{margin:0;padding-left:22px}
+.indice li{margin:4px 0}
+.indice li.feito a{color:var(--verde);text-decoration:line-through}
+
+/* Cartão de passo */
+.passo{background:var(--papel);border:1px solid var(--borda);border-left:8px solid var(--azul);border-radius:14px;padding:20px 22px;margin:28px 0;scroll-margin-top:110px}
+.passo.feito{border-left-color:var(--verde)}
+.passo-topo{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.etiquetas{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.etiqueta{font-size:14px;padding:2px 10px;border-radius:99px;background:var(--fundo);border:1px solid var(--borda);color:var(--suave)}
+.objetivo{background:var(--azul-claro);border-radius:10px;padding:10px 14px;margin:8px 0 14px}
+.objetivo strong{color:var(--azul)}
+
+ol.acoes{padding-left:0;list-style:none;counter-reset:acao}
+ol.acoes>li{counter-increment:acao;position:relative;padding:10px 0 10px 48px;border-bottom:1px dashed var(--borda)}
+ol.acoes>li:last-child{border-bottom:none}
+ol.acoes>li::before{content:counter(acao);position:absolute;left:0;top:10px;width:34px;height:34px;border-radius:50%;background:var(--azul);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:16px}
+:root[data-tema="escuro"] ol.acoes>li::before{color:#111}
+
+/* Caixas */
+.caixa{border-radius:10px;padding:12px 16px;margin:14px 0;border:1px solid}
+.caixa p{margin:4px 0}
+.dica{background:var(--verde-claro);border-color:var(--verde)}
+.atencao{background:var(--amarelo-claro);border-color:var(--amarelo)}
+.perigo{background:var(--vermelho-claro);border-color:var(--vermelho)}
+.pausa{background:var(--roxo-claro);border-color:var(--roxo)}
+.ver{background:var(--azul-claro);border-color:var(--azul)}
+
+/* Código com botão copiar */
+.codigo{position:relative;margin:10px 0}
+.codigo pre{margin:0;background:var(--codigo);color:var(--codigo-texto);padding:16px 16px 16px 16px;border-radius:10px;overflow-x:auto;font-family:Consolas,"Cascadia Code",monospace;font-size:15px;line-height:1.6}
+.codigo .rotulo{font-size:13px;color:var(--suave);margin-bottom:4px}
+.copiar{position:absolute;top:30px;right:8px;font-family:inherit;font-size:13px;padding:4px 10px;border-radius:6px;border:none;background:#3b3f55;color:#fff;cursor:pointer}
+.copiar.ok{background:var(--verde)}
+
+/* Tabelas */
+.tabela{overflow-x:auto}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:.95em}
+th,td{border:1px solid var(--borda);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--fundo)}
+
+details{background:var(--fundo);border:1px solid var(--borda);border-radius:10px;padding:8px 14px;margin:12px 0}
+summary{cursor:pointer;font-weight:700}
+
+/* Checkbox concluído */
+.concluir{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--fundo);border:2px solid var(--borda);cursor:pointer;font-weight:700}
+.concluir input{width:24px;height:24px;accent-color:var(--verde);cursor:pointer}
+.passo.feito .concluir{border-color:var(--verde);background:var(--verde-claro)}
+
+/* Mapa visual */
+.mapa{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin:16px 0}
+.mapa .no{background:var(--papel);border:2px solid var(--azul);border-radius:12px;padding:10px 14px;text-align:center;min-width:120px}
+.mapa .no small{display:block;color:var(--suave);font-size:13px}
+.mapa .seta{font-size:1.6em;color:var(--suave)}
+
+.arvore{font-family:Consolas,monospace;font-size:15px;background:var(--papel);border:1px solid var(--borda);border-radius:10px;padding:14px;white-space:pre;overflow-x:auto;line-height:1.7}
+
+/* Navegação no modo foco */
+.nav-foco{display:none;gap:10px;justify-content:space-between;margin:20px 0}
+.nav-foco button{font-family:inherit;font-size:16px;padding:10px 18px;border-radius:10px;border:1px solid var(--azul);background:var(--azul-claro);color:var(--texto);cursor:pointer}
+body.foco .passo,body.foco .secao-extra{display:none}
+body.foco .passo.ativo{display:block}
+body.foco .nav-foco{display:flex}
+body.foco .indice{display:none}
+
+footer{color:var(--suave);font-size:15px;text-align:center;padding:30px 16px}
+@media print{.barra,.nav-foco,.copiar{display:none}.passo{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<div class="barra">
+  <span class="titulo">☕ Manual Static Web Apps</span>
+  <div class="controles">
+    <button id="btn-foco" aria-pressed="false" title="Mostra só um passo por vez">🎯 Modo foco</button>
+    <button id="btn-menor" title="Diminuir letra">A−</button>
+    <button id="btn-maior" title="Aumentar letra">A+</button>
+    <button id="btn-tema" title="Trocar claro/escuro">🌓 Tema</button>
+    <button id="btn-zerar" title="Desmarcar todos os passos">↺ Recomeçar</button>
+  </div>
+  <div class="progresso" aria-hidden="true"><div id="barra-progresso"></div></div>
+  <div class="progresso-texto" id="texto-progresso">0 de 0 passos concluídos</div>
+</div>
+
+<div class="layout">
+
+<h1>Publicando o "Café da Vila" no Azure Static Web Apps</h1>
+<p class="subtitulo">Um passo de cada vez. Sem pressa. Seu progresso fica salvo neste computador.</p>
+
+<div class="caixa ver">
+  <p><strong>Como usar este manual</strong></p>
+  <p>✅ Cada passo tem um quadrado <strong>"Concluí este passo"</strong> no final. Marque quando terminar.</p>
+  <p>🎯 Se muitas informações na tela te cansam, clique em <strong>Modo foco</strong>: aparece só um passo por vez.</p>
+  <p>📋 Caixas escuras são <strong>comandos</strong>. Use o botão <strong>Copiar</strong> e cole (Ctrl+V). Não precisa digitar.</p>
+  <p>🟩 Verde = dica. 🟨 Amarelo = atenção. 🟥 Vermelho = cuidado. 🟪 Roxo = hora de pausar.</p>
+  <p>👀 Caixas azuis dizem <strong>o que você deve ver na tela</strong>. Se a tela estiver igual, está tudo certo.</p>
+</div>
+
+<nav class="indice" aria-label="Índice">
+  <strong>📍 Mapa dos passos</strong> <span class="etiqueta">tempo total: ~1h a 1h30 (pode dividir em dias)</span>
+  <ol id="lista-indice"></ol>
+</nav>
+
+<!-- ================= PASSO 0 ================= -->
+<section class="passo" id="p0" data-titulo="Entender o que vamos fazer">
+  <div class="passo-topo"><h2>Passo 0 · Entender o que vamos fazer</h2></div>
+  <div class="etiquetas"><span class="etiqueta">⏱️ 5 min</span><span class="etiqueta">🧠 só leitura</span></div>
+  <div class="objetivo"><strong>Objetivo:</strong> saber o "porquê" antes do "como". Nada para instalar ainda.</div>
+
+  <h3>O que é o Azure Static Web Apps?</h3>
+  <p>É um serviço da Microsoft que <strong>coloca seu site na internet</strong> de graça (no plano Free).</p>
+  <p>Pense numa cafeteria:</p>
+  <ul>
+    <li>🪟 <strong>A vitrine</strong> = o site (páginas HTML, cores, imagens). É o que as pessoas veem.</li>
+    <li>🧑‍🍳 <strong>O balconista</strong> = a API. Ele recebe pedidos e responde. Fica "escondido" atrás do balcão.</li>
+    <li>🏢 <strong>O prédio</strong> = o Azure Static Web Apps. Ele guarda a vitrine e o balconista juntos.</li>
+  </ul>
+
+  <h3>O caminho completo</h3>
+  <div class="mapa">
+    <div class="no">💻 Seu PC<small>você escreve o código</small></div><span class="seta">→</span>
+    <div class="no">🐙 GitHub<small>guarda o código</small></div><span class="seta">→</span>
+    <div class="no">⚙️ GitHub Actions<small>robô que publica</small></div><span class="seta">→</span>
+    <div class="no">☁️ Azure<small>site no ar</small></div><span class="seta">→</span>
+    <div class="no">🌍 Pessoas<small>acessam o link</small></div>
+  </div>
+  <p>A parte mágica: depois de configurado, <strong>toda vez que você enviar uma mudança para o GitHub, o site se atualiza sozinho</strong>.</p>
+
+  <h3>A aplicação fictícia: "Café da Vila"</h3>
+  <p>Já está pronta na pasta <code>D:\Static Web Apps\cafe-da-vila</code>. Ela tem:</p>
+  <ul>
+    <li>Uma página com o <strong>cardápio</strong> da cafeteria.</li>
+    <li>Um <strong>formulário</strong> para fazer um pedido.</li>
+    <li>Uma <strong>API</strong> com dois endereços: <code>/api/cardapio</code> (lista os itens) e <code>/api/pedido</code> (recebe o pedido e devolve um número).</li>
+  </ul>
+  <div class="caixa dica"><p>💡 Você <strong>não precisa entender o código</strong> para seguir este manual. Só seguir os passos.</p></div>
+
+  <label class="concluir"><input type="checkbox"> Concluí este passo</label>
+</section>
+
+<!-- ================= PASSO 1 ================= -->
+<section class="passo" id="p1" data-titulo="Conferir as ferramentas">
+  <div class="passo-topo"><h2>Passo 1 · Conferir as ferramentas</h2></div>
+  <div class="etiquetas"><span class="etiqueta">⏱️ 10 a 30 min</span><span class="etiqueta">🔧 instalação</span></div>
+  <div class="objetivo"><strong>Objetivo:</strong> ter 3 programas no PC e 2 contas na internet.</div>
+
+  <div class="tabela"><table>
+    <tr><th>O quê</th><th>Para que serve</th><th>Onde conseguir</th></tr>
+    <tr><td>🟧 <strong>Git</strong></td><td>Envia seu código para o GitHub</td><td><a href="https://git-scm.com/download/win" target="_blank">git-scm.com</a></td></tr>
+    <tr><td>🐳 <strong>Docker Desktop</strong></td><td>Testa o site no seu PC antes de publicar</td><td><a href="https://www.docker.com/products/docker-desktop/" target="_blank">docker.com</a></td></tr>
+    <tr><td>📝 <strong>VS Code</strong> (opcional)</td><td>Abrir e editar os arquivos com conforto</td><td><a href="https://code.visualstudio.com/" target="_blank">code.visualstudio.com</a></td></tr>
+    <tr><td>🐙 <strong>Conta GitHub</strong></td><td>Guardar o código na internet</td><td><a href="https://github.com/signup" target="_blank">github.com/signup</a></td></tr>
+    <tr><td>☁️ <strong>Conta Azure</strong></td><td>Onde o site vai morar</td><td><a href="https://azure.microsoft.com/free/" target="_blank">azure.microsoft.com/free</a></td></tr>
+  </table></div>
+
+  <h3>Como conferir se o Git e o Docker já estão instalados</h3>
+  <ol class="acoes">
+    <li>Aperte a tecla <strong>Windows</strong> ⊞ do teclado.</li>
+    <li>Digite <code>PowerShell</code> e aperte <strong>Enter</strong>. Abre uma janela azul ou preta. Ela é o <strong>terminal</strong>.</li>
+    <li>Copie o comando abaixo, cole no terminal (botão direito do mouse ou Ctrl+V) e aperte <strong>Enter</strong>:
+      <div class="codigo"><div class="rotulo">PowerShell</div><pre>git --version
+docker --version</pre></div>
+    </li>
+  </ol>
+  <div class="caixa ver"><p>👀 <strong>O que você deve ver:</strong> duas linhas parecidas com <code>git version 2.xx</code> e <code>Docker version 2x.x</code>. Os números podem ser diferentes. Tudo bem.</p></div>
+  <div class="caixa atencao"><p>⚠️ Se aparecer <em>"não é reconhecido como nome de cmdlet"</em>, aquele programa não está instalado. Instale pelo link da tabela, <strong>feche e abra o PowerShell de novo</strong>, e teste outra vez.</p></div>
+  <div class="caixa atencao"><p>⚠️ O <strong>Docker Desktop precisa estar aberto</strong> (ícone da baleia 🐳 perto do relógio) para funcionar.</p></div>
+
+  <label class="concluir"><input type="checkbox"> Concluí este passo</label>
+</section>
+
+<!-- ================= PASSO 2 ================= -->
+<section class="passo" id="p2" data-titulo="Conhecer as pastas do projeto">
+  <div class="passo-topo"><h2>Passo 2 · Conhecer as pastas do projeto</h2></div>
+  <div class="etiquetas"><span class="etiqueta">⏱️ 5 min</span><span class="etiqueta">🧠 só leitura</span></div>
+  <div class="objetivo"><strong>Objetivo:</strong> saber onde fica cada coisa. Você não vai mexer em nada agora.</div>
+
+  <div class="arvore">D:\Static Web Apps\
+├── Manual-Static-Web-Apps.html   ← este manual
+└── cafe-da-vila\                 ← o projeto
+    ├── app\                      🪟 A VITRINE (o site)
+    │   ├── index.html            a página
+    │   ├── style.css             as cores e o visual
+    │   ├── script.js             conversa com a API
+    │   └── staticwebapp.config.json  regras do Azure
+    ├── api\                      🧑‍🍳 O BALCONISTA (a API)
+    │   ├── package.json          lista de "peças" da API
+    │   ├── host.json             configuração das Functions
+    │   └── src\functions\
+    │       ├── cardapio.js       responde em /api/cardapio
+    │       └── pedido.js         responde em /api/pedido
+    ├── Dockerfile                receita do container de teste
+    ├── docker-compose.yml        liga tudo com 1 comando
+    └── README.md                 resumo do projeto</div>
+
+  <details><summary>🤔 Por que a API fica numa pasta separada?</summary>
+    <p>O Azure Static Web Apps sabe que tudo dentro de <code>api</code> é "balconista". Ele transforma esses arquivos em <strong>Azure Functions</strong> (pequenos programas que rodam só quando alguém chama). Você não paga servidor ligado o tempo todo.</p>
+  </details>
+  <details><summary>🤔 O que faz o arquivo staticwebapp.config.json?</summary>
+    <p>São regras para o Azure. No nosso caso: (1) qualquer endereço desconhecido mostra a página inicial; (2) a API usa Node.js versão 20.</p>
+  </details>
+
+  <label class="concluir"><input type="checkbox"> Concluí este passo</label>
+</section>
+
+<!-- ================= PASSO 3 ================= -->
+<section class="passo" id="p3" data-titulo="Testar no seu PC com Docker">
+  <div class="passo-topo"><h2>Passo 3 · Testar no seu PC com Docker</h2></div>
+  <div class="etiquetas"><span class="etiqueta">⏱️ 5 a 10 min</span><span class="etiqueta">🐳 Docker</span></div>
+  <div class="objetivo"><strong>Objetivo:</strong> ver o site funcionando no seu computador, <strong>igual</strong> vai funcionar no Azure.</div>
+
+  <ol class="acoes">
+    <li>Confira se o <strong>Docker Desktop está aberto</strong> 🐳.</li>
+    <li>No PowerShell, entre na pasta do projeto. <strong>As aspas são obrigatórias</strong> porque o nome da pasta tem espaços:
+      <div class="codigo"><div class="rotulo">PowerShell</div><pre>cd "D:\Static Web Apps\cafe-da-vila"</pre></div>
+    </li>
+    <li>Ligue o projeto:
+      <div class="codigo"><div class="rotulo">PowerShell</div><pre>docker compose up --build</pre></div>
+    </li>
+    <li>Espere. Na <strong>primeira vez</strong> demora alguns minutos (o Docker está baixando as peças). Muitas linhas vão passar na tela. É normal.</li>
+    <li>Quando aparecer algo como <code>Azure Static Web Apps emulator started at http://0.0.0.0:4280</code>, abra o navegador em:
+      <div class="codigo"><div class="rotulo">Navegador</div><pre>http://localhost:4280</pre></div>
+    </li>
+  </ol>
+
+  <div class="caixa ver"><p>👀 <strong>O que você deve ver:</strong> uma página marrom e creme escrita "☕ Café da Vila", com 5 cartões no cardápio (Expresso, Capuccino, Pão de queijo, Bolo de fubá, Chá gelado).</p>
+  <p>Teste o formulário: escreva seu nome, escolha um item e clique em <strong>Enviar pedido</strong>. Aparece uma mensagem verde com o número do pedido.</p></div>
+
+  <details><summary>🤔 O que está acontecendo por trás?</summary>
+    <p>O Docker criou uma "caixinha" (container) com o <strong>SWA CLI</strong>, um simulador oficial do Azure Static Web Apps. Ele liga o site e a API juntos, no mesmo endereço, como o Azure faz.</p>
+  </details>
+
+  <h3>Para desligar</h3>
+  <ol class="acoes">
+    <li>No PowerShell onde o projeto está rodando, aperte <strong>Ctrl + C</strong>.</li>
+    <li>Depois rode:
+      <div class="codigo"><div class="rotulo">PowerShell</div><pre>docker compose down</pre></div>
+    </li>
+  </ol>
+  <div class="caixa dica"><p>💡 Enquanto o container está ligado, se você mudar algo dentro da pasta <code>app</code> (por exemplo o texto do <code>index.html</code>), basta <strong>recarregar a página (F5)</strong> para ver.</p></div>
+
+  <label class="concluir"><input type="checkbox"> Concluí este passo</label>
+</section>
+
+<div class="caixa pausa secao-extra"><p>🟪 <strong>Boa hora para uma pausa.</strong> Você já tem o site funcionando no seu PC. Levante, beba água. O progresso está salvo.</p></div>
+
+<!-- ================= PASSO 4 ================= -->
+<section class="passo" id="p4" data-titulo="Criar o repositório no GitHub">
+  <div class="passo-topo"><h2>Passo 4 · Criar o repositório no GitHub</h2></div>
+  <div class="etiquetas"><span class="etiqueta">⏱️ 5 min</span><span class="etiqueta">🐙 site do GitHub</span></div>
+  <div class="objetivo"><strong>Objetivo:</strong> criar uma "caixa vazia" na internet para guardar o código. Essa caixa se chama <strong>repositório</strong>.</div>
+
+  <ol class="acoes">
+    <li>Abra <a href="https://github.com" target="_blank">github.com</a> e faça login.</li>
+    <li>No canto de cima, à direita, clique no <strong>+</strong> e depois em <strong>New repository</strong>.</li>
+    <li>Preencha assim:
+      <div class="tabela"><table>
+        <tr><th>Campo</th><th>O que colocar</th></tr>
+        <tr><td>Repository name</td><td><code>cafe-da-vila</code></td></tr>
+        <tr><td>Description</td><td>Projeto de estudo do Azure Static Web Apps (opcional)</td></tr>
+        <tr><td>Public / Private</td><td>Qualquer um. Os dois funcionam.</td></tr>
+        <tr><td>Add a README / .gitignore / license</td><td><strong>Deixe tudo DESMARCADO</strong> (já temos esses arquivos)</td></tr>
+      </table></div>
+    </li>
+    <li>Clique no botão verde <strong>Create repository</strong>.</li>
+  </ol>
+  <div class="caixa ver"><p>👀 <strong>O que você deve ver:</strong> uma página com o título "Quick setup" e um endereço parecido com <code>https://github.com/SEU-USUARIO/cafe-da-vila.git</code>. <strong>Deixe essa aba aberta.</strong></p></div>
+
+  <label class="concluir"><input type="checkbox"> Concluí este passo</label>
+</section>
+
+<!-- ================= PASSO 5 ================= -->
+<section class="passo" id="p5" data-titulo="Enviar o código para o GitHub">
+  <div class="passo-topo"><h2>Passo 5 · Enviar o código para o GitHub</h2></div>
+  <div class="etiquetas"><span class="etiqueta">⏱️ 10 min</span><span class="etiqueta">🟧 Git no PowerShell</span></div>
+  <div class="objetivo"><strong>Objetivo:</strong> copiar os arquivos do seu PC para o repositório que você acabou de criar.</div>
+
+  <h3>5.1 · Só se for a primeira vez que você usa o Git neste PC</h3>
+  <p>Diga ao Git quem você é (troque pelos seus dados, mantendo as aspas):</p>
+  <div class="codigo"><div class="rotulo">PowerShell</div><pre>git config --global user.name "Seu Nome"
+git config --global user.email "seu-email@exemplo.com"</pre></div>
+
+  <h3>5.2 · Enviar o projeto</h3>
+  <p>Rode <strong>um comando por vez</strong>. Espere cada um terminar antes do próximo.</p>
+  <ol class="acoes">
+    <li>Entrar na pasta:
+      <div class="codigo"><div class="rotulo">PowerShell</div><pre>cd "D:\Static Web Apps\cafe-da-vila"</pre></div></li>
+    <li>Transformar a pasta num projeto Git:
+      <div class="codigo"><div class="rotulo">PowerShell</div><pre>git init</pre></div></li>
+    <li>Marcar todos os arquivos para envio:
+      <div class="codigo"><div class="rotulo">PowerShell</div><pre>git add .</pre></div></li>
+    <li>Criar um "pacote" com uma etiqueta (commit):
+      <div class="codigo"><div class="rotulo">PowerShell</div><pre>git commit -m "Primeira versao do Cafe da Vila"</pre></div></li>
+    <li>Dar o nome <code>main</code> para a linha principal:
+      <div class="codigo"><div class="rotulo">PowerShell</div><pre>git branch -M main</pre></div></li>
+    <li>Ligar seu PC ao repositório. <strong>Troque <code>SEU-USUARIO</code></strong> pelo seu usuário do GitHub (ou copie o endereço da aba do Passo 4):
+      <div class="codigo"><div class="rotulo">PowerShell</div><pre>git remote add origin https://github.com/SEU-USUARIO/cafe-da-vila.git</pre></div></li>
+    <li>Enviar:
+      <div class="codigo"><div class="rotulo">PowerShell</div><pre>git push -u origin main</pre></div></li>
+  </ol>
+  <div class="caixa atencao"><p>⚠️ No último comando pode abrir uma <strong>janela pedindo login do GitHub</strong>. Escolha <strong>"Sign in with your browser"</strong> e autorize. É seguro: é o próprio Git pedindo permissão.</p></div>
+  <div class="caixa ver"><p>👀 <strong>O que você deve ver:</strong> recarregue a aba do GitHub. Agora aparecem as pastas <code>app</code>, <code>api</code> e os outros arquivos.</p></div>
+
+  <details><summary>🤔 Vocabulário rápido</summary>
+    <p><strong>commit</strong> = uma "foto" do projeto naquele momento, com uma etiqueta.<br>
+    <strong>push</strong> = empurrar (enviar) as fotos para o GitHub.<br>
+    <strong>origin</strong> = apelido do endereço do seu repositório.<br>
+    <strong>main</strong> = nome da linha principal do projeto.</p>
+  </details>
+
+  <label class="concluir"><input type="checkbox"> Concluí este passo</label>
+</section>
+
+<div class="caixa pausa secao-extra"><p>🟪 <strong>Pausa sugerida.</strong> Seu código já está seguro na internet. O próximo passo é o mais longo, então vale chegar descansado.</p></div>
+
+<!-- ================= PASSO 6 ================= -->
+<section class="passo" id="p6" data-titulo="Criar o Static Web App no Azure">
+  <div class="passo-topo"><h2>Passo 6 · Criar o Static Web App no Azure</h2></div>
+  <div class="etiquetas"><span class="etiqueta">⏱️ 10 a 15 min</span><span class="etiqueta">☁️ portal do Azure</span><span class="etiqueta">⭐ passo principal</span></div>
+  <div class="objetivo"><strong>Objetivo:</strong> criar o "prédio" no Azure e ligar ele ao seu repositório do GitHub.</div>
+
+  <h3>6.1 · Abrir a tela de criação</h3>
+  <ol class="acoes">
+    <li>Abra <a href="https://portal.azure.com" target="_blank">portal.azure.com</a> e faça login.</li>
+    <li>Na barra de pesquisa lá em cima, digite <code>Static Web Apps</code> e clique no resultado com esse nome.</li>
+    <li>Clique em <strong>+ Criar</strong> (ou <strong>+ Create</strong>, se o portal estiver em inglês).</li>
+  </ol>
+
+  <h3>6.2 · Preencher a aba "Básico"</h3>
+  <p>Vá preenchendo de cima para baixo. A tabela segue a mesma ordem da tela:</p>
+  <div class="tabela"><table>
+    <tr><th>Campo na tela</th><th>O que fazer</th></tr>
+    <tr><td>Assinatura (Subscription)</td><td>Escolha a sua assinatura (geralmente só tem uma).</td></tr>
+    <tr><td>Grupo de recursos (Resource group)</td><td>Clique em <strong>Criar novo</strong> e escreva <code>rg-cafe-da-vila</code>. É uma "pasta" do Azure para organizar.</td></tr>
+    <tr><td>Nome (Name)</td><td><code>swa-cafe-da-vila</code></td></tr>
+    <tr><td>Tipo de plano (Plan type)</td><td><strong>Free</strong> (grátis) ✅</td></tr>
+    <tr><td>Região (se aparecer)</td><td>Pode deixar a sugerida (ex.: East US 2). O site em si fica disponível no mundo todo.</td></tr>
+    <tr><td>Origem (Source)</td><td><strong>GitHub</strong></td></tr>
+    <tr><td>Conta do GitHub</td><td>Clique em <strong>Entrar com o GitHub</strong> e autorize o Azure.</td></tr>
+    <tr><td>Organização (Organization)</td><td>Seu usuário do GitHub.</td></tr>
+    <tr><td>Repositório (Repository)</td><td><code>cafe-da-vila</code></td></tr>
+    <tr><td>Branch</td><td><code>main</code></td></tr>
+  </table></div>
+
+  <h3>6.3 · Detalhes do Build (a parte mais importante ⭐)</h3>
+  <p>Logo abaixo aparecem campos sobre <strong>onde ficam os arquivos</strong>. Preencha <strong>exatamente</strong> assim:</p>
+  <div class="tabela"><table>
+    <tr><th>Campo</th><th>Valor</th><th>Por quê</th></tr>
+    <tr><td>Predefinições de Build (Build Presets)</td><td><strong>Custom</strong></td><td>Nosso site é HTML puro, sem framework.</td></tr>
+    <tr><td>Local do aplicativo (App location)</td><td><code>/app</code></td><td>É a pasta da vitrine 🪟.</td></tr>
+    <tr><td>Local da API (Api location)</td><td><code>api</code></td><td>É a pasta do balconista 🧑‍🍳.</td></tr>
+    <tr><td>Local de saída (Output location)</td><td><strong>deixe vazio</strong></td><td>Não temos etapa de "montagem", os arquivos já estão prontos.</td></tr>
+  </table></div>
+  <div class="caixa perigo"><p>🟥 <strong>Cuidado:</strong> se o "App location" ficar errado, o site abre uma página padrão do Azure em vez do Café da Vila. Se isso acontecer, veja a seção <a href="#problemas">Problemas comuns</a>.</p></div>
+
+  <h3>6.4 · Finalizar</h3>
+  <ol class="acoes">
+    <li>Clique em <strong>Revisar + criar</strong> (Review + create).</li>
+    <li>Confira o resumo e clique em <strong>Criar</strong> (Create).</li>
+    <li>Espere 1 ou 2 minutos. Quando aparecer "A implantação foi concluída", clique em <strong>Ir para o recurso</strong>.</li>
+  </ol>
+  <div class="caixa atencao"><p>⚠️ Se aparecer algum campo que não está nesta tabela, <strong>deixe o valor padrão</strong>. O portal do Azure muda de visual de vez em quando, mas os campos principais são estes.</p></div>
+
+  <details><summary>🤔 O que o Azure fez sozinho agora?</summary>
+    <p>Ele colocou um arquivo novo no seu repositório do GitHub, dentro de <code>.github/workflows/</code>. Esse arquivo é a "receita" do robô <strong>GitHub Actions</strong>, que publica o site toda vez que você enviar mudanças.</p>
+  </details>
+
+  <label class="concluir"><input type="checkbox"> Concluí este passo</label>
+</section>
+
+<!-- ================= PASSO 7 ================= -->
+<section class="passo" id="p7" data-titulo="Acompanhar a publicação (GitHub Actions)">
+  <div class="passo-topo"><h2>Passo 7 · Acompanhar a publicação</h2></div>
+  <div class="etiquetas"><span class="etiqueta">⏱️ 3 a 5 min de espera</span><span class="etiqueta">⚙️ GitHub Actions</span></div>
+  <div class="objetivo"><strong>Objetivo:</strong> ver o robô trabalhando e confirmar que terminou bem.</div>
+
+  <ol class="acoes">
+    <li>Vá na aba do seu repositório no GitHub e recarregue (F5).</li>
+    <li>Clique na aba <strong>Actions</strong> (no menu de cima do repositório).</li>
+    <li>Você vai ver uma linha com o nome <em>"Azure Static Web Apps CI/CD"</em>.</li>
+  </ol>
+  <div class="tabela"><table>
+    <tr><th>Ícone</th><th>Significado</th><th>O que fazer</th></tr>
+    <tr><td>🟡 bolinha amarela girando</td><td>Trabalhando</td><td>Esperar. Leva alguns minutos.</td></tr>
+    <tr><td>✅ check verde</td><td>Deu certo!</td><td>Ir para o Passo 8.</td></tr>
+    <tr><td>❌ X vermelho</td><td>Deu erro</td><td>Clique nele para ler o erro e veja <a href="#problemas">Problemas comuns</a>.</td></tr>
+  </table></div>
+
+  <label class="concluir"><input type="checkbox"> Concluí este passo</label>
+</section>
+
+<!-- ================= PASSO 8 ================= -->
+<section class="passo" id="p8" data-titulo="Abrir o site publicado">
+  <div class="passo-topo"><h2>Passo 8 · Abrir o site publicado 🎉</h2></div>
+  <div class="etiquetas"><span class="etiqueta">⏱️ 2 min</span><span class="etiqueta">🌍 internet</span></div>
+  <div class="objetivo"><strong>Objetivo:</strong> ver o Café da Vila funcionando na internet.</div>
+
+  <ol class="acoes">
+    <li>Volte ao portal do Azure, na página do recurso <code>swa-cafe-da-vila</code> (tela <strong>Visão geral</strong> / Overview).</li>
+    <li>Procure o campo <strong>URL</strong>. É um endereço parecido com <code>https://palavra-palavra-0a1b2c3d4.azurestaticapps.net</code>. Clique nele.</li>
+    <li>Teste o cardápio e faça um pedido, como no Passo 3.</li>
+    <li>Teste a API direto: no final do endereço, acrescente <code>/api/cardapio</code> e aperte Enter.</li>
+  </ol>
+  <div class="caixa ver"><p>👀 <strong>O que você deve ver:</strong> o mesmo site do seu PC, agora com cadeado 🔒 (HTTPS). Em <code>/api/cardapio</code> aparece um texto com chaves <code>{ }</code>: é a resposta da API em formato JSON.</p></div>
+  <div class="caixa dica"><p>💡 Esse link pode ser enviado para qualquer pessoa. Ele já funciona no celular também.</p></div>
+
+  <label class="concluir"><input type="checkbox"> Concluí este passo</label>
+</section>
+
+<!-- ================= PASSO 9 ================= -->
+<section class="passo" id="p9" data-titulo="Fazer uma mudança e ver atualizar sozinho">
+  <div class="passo-topo"><h2>Passo 9 · Fazer uma mudança e ver o site atualizar sozinho</h2></div>
+  <div class="etiquetas"><span class="etiqueta">⏱️ 10 min</span><span class="etiqueta">🔁 ciclo de trabalho</span></div>
+  <div class="objetivo"><strong>Objetivo:</strong> aprender o ciclo que você vai repetir sempre: <strong>baixar → mudar → enviar → esperar → ver</strong>.</div>
+
+  <ol class="acoes">
+    <li><strong>Baixar a novidade do GitHub</strong>. Lembra que o Azure criou um arquivo lá? Seu PC ainda não tem ele:
+      <div class="codigo"><div class="rotulo">PowerShell</div><pre>cd "D:\Static Web Apps\cafe-da-vila"
+git pull</pre></div>
+      <div class="caixa perigo"><p>🟥 <strong>Não pule este item.</strong> Sem o <code>git pull</code>, o próximo envio dá erro (<em>rejected</em>).</p></div></li>
+    <li><strong>Mudar algo</strong>: abra <code>app\index.html</code> (no VS Code ou Bloco de Notas). Troque o texto <code>O cafezinho mais gostoso da vila</code> por <code>O cafezinho mais gostoso do mundo!</code> e salve (Ctrl+S).</li>
+    <li><strong>Enviar</strong>:
+      <div class="codigo"><div class="rotulo">PowerShell</div><pre>git add .
+git commit -m "Muda o titulo da pagina"
+git push</pre></div></li>
+    <li><strong>Esperar</strong>: vá na aba <strong>Actions</strong> do GitHub e espere o ✅ verde (como no Passo 7).</li>
+    <li><strong>Ver</strong>: abra o link do site e recarregue (Ctrl+F5).</li>
+  </ol>
+  <div class="caixa ver"><p>👀 <strong>O que você deve ver:</strong> o título novo, "O cafezinho mais gostoso do mundo!". Você não precisou entrar no Azure. 🎉</p></div>
+
+  <label class="concluir"><input type="checkbox"> Concluí este passo</label>
+</section>
+
+<!-- ================= PASSO 10 ================= -->
+<section class="passo" id="p10" data-titulo="(Opcional) Apagar tudo do Azure">
+  <div class="passo-topo"><h2>Passo 10 · (Opcional) Apagar tudo do Azure</h2></div>
+  <div class="etiquetas"><span class="etiqueta">⏱️ 3 min</span><span class="etiqueta">🧹 limpeza</span></div>
+  <div class="objetivo"><strong>Objetivo:</strong> remover o site quando não precisar mais. No plano Free não há cobrança, mas é bom manter a conta organizada.</div>
+
+  <ol class="acoes">
+    <li>No portal do Azure, pesquise <code>Grupos de recursos</code> (Resource groups).</li>
+    <li>Clique em <code>rg-cafe-da-vila</code>.</li>
+    <li>Clique em <strong>Excluir grupo de recursos</strong>, digite o nome para confirmar e clique em <strong>Excluir</strong>.</li>
+  </ol>
+  <div class="caixa perigo"><p>🟥 Isso apaga o site da internet <strong>para sempre</strong>. O código continua no seu PC e no GitHub.</p></div>
+
+  <label class="concluir"><input type="checkbox"> Concluí este passo</label>
+</section>
+
+<div class="nav-foco">
+  <button id="btn-anterior">← Passo anterior</button>
+  <button id="btn-proximo">Próximo passo →</button>
+</div>
+
+<!-- ================= EXTRAS ================= -->
+<section class="secao-extra" id="problemas">
+  <h2>🧯 Problemas comuns</h2>
+  <div class="tabela"><table>
+    <tr><th>O que aconteceu</th><th>Causa provável</th><th>Como resolver</th></tr>
+    <tr><td><code>docker</code> não é reconhecido / erro "cannot connect to the Docker daemon"</td><td>Docker Desktop fechado ou não instalado</td><td>Abra o Docker Desktop e espere a baleia 🐳 ficar parada (pronta).</td></tr>
+    <tr><td>Porta 4280 "already in use"</td><td>Outro programa (ou um container antigo) usa a porta</td><td>Rode <code>docker compose down</code> e tente de novo.</td></tr>
+    <tr><td>"Não consegui falar com a API" no site</td><td>A API não ligou</td><td>No local: veja as mensagens no PowerShell. No Azure: confira se o "Api location" é <code>api</code>.</td></tr>
+    <tr><td>Site no Azure mostra página padrão "Congratulations"</td><td>Publicação ainda rodando ou "App location" errado</td><td>Espere o ✅ no Actions. Se persistir, edite o arquivo em <code>.github/workflows/</code> no GitHub e confira <code>app_location: "/app"</code> e <code>api_location: "api"</code>.</td></tr>
+    <tr><td><code>git push</code> dá <em>rejected</em> / <em>fetch first</em></td><td>O GitHub tem algo que seu PC não tem</td><td>Rode <code>git pull</code> e depois <code>git push</code> de novo.</td></tr>
+    <tr><td><code>remote origin already exists</code></td><td>Você já rodou o comando antes</td><td>Tudo bem, pule este comando.</td></tr>
+    <tr><td>Erro de caminho com <code>cd</code></td><td>Faltaram as aspas (o nome da pasta tem espaços)</td><td>Use <code>cd "D:\Static Web Apps\cafe-da-vila"</code> com aspas.</td></tr>
+    <tr><td>❌ no GitHub Actions</td><td>Vários motivos</td><td>Clique no ❌, depois no passo vermelho, e leia as últimas linhas. Copie o erro e peça ajuda à IA colando o texto.</td></tr>
+  </table></div>
+
+  <h2 style="margin-top:32px">📖 Glossário (palavras difíceis)</h2>
+  <div class="tabela"><table>
+    <tr><th>Palavra</th><th>Significado simples</th></tr>
+    <tr><td>API</td><td>O "balconista" do site: recebe pedidos e devolve respostas.</td></tr>
+    <tr><td>Azure Functions</td><td>Pequenos programas que só "acordam" quando alguém chama. É como a API roda no Azure.</td></tr>
+    <tr><td>Container</td><td>Uma caixa isolada com tudo que o programa precisa para rodar.</td></tr>
+    <tr><td>Docker Compose</td><td>Um arquivo que liga containers com um único comando.</td></tr>
+    <tr><td>Repositório</td><td>Pasta do projeto guardada no GitHub, com histórico de mudanças.</td></tr>
+    <tr><td>Commit</td><td>Uma "foto" do projeto com uma etiqueta explicando a mudança.</td></tr>
+    <tr><td>Push / Pull</td><td>Enviar para o GitHub / Baixar do GitHub.</td></tr>
+    <tr><td>GitHub Actions</td><td>Robô do GitHub que executa tarefas sozinho, como publicar o site.</td></tr>
+    <tr><td>CI/CD</td><td>Nome técnico para "testar e publicar automaticamente".</td></tr>
+    <tr><td>Grupo de recursos</td><td>Pasta do Azure que agrupa coisas de um mesmo projeto.</td></tr>
+    <tr><td>JSON</td><td>Formato de texto com <code>{ }</code> que programas usam para trocar dados.</td></tr>
+    <tr><td>HTTPS 🔒</td><td>Conexão segura. O Azure liga isso de graça para você.</td></tr>
+  </table></div>
+
+  <h2 style="margin-top:32px">🚀 Próximos passos (quando quiser)</h2>
+  <ul>
+    <li><strong>Domínio próprio</strong>: usar um endereço como <code>www.cafedavila.com.br</code> (menu <em>Domínios personalizados</em> no recurso).</li>
+    <li><strong>Login</strong>: o Static Web Apps tem login com GitHub e Microsoft já pronto.</li>
+    <li><strong>Ambientes de teste</strong>: ao abrir um <em>Pull Request</em> no GitHub, o Azure cria um site temporário só para testar a mudança.</li>
+    <li><strong>Agente de IA</strong>: trocar a função <code>pedido</code> por uma que chama um modelo de IA para recomendar um café.</li>
+  </ul>
+</section>
+
+<footer>
+  Manual criado para o projeto fictício <strong>Café da Vila</strong> · Azure Static Web Apps · outubro de 2026
+</footer>
+</div>
+
+<script>
+(function(){
+  const CHAVE = "manual-swa-cafe";
+  let estado = {};
+  try { estado = JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch(e) { estado = {}; }
+  function salvar(){ try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch(e){} }
+
+  const raiz = document.documentElement;
+  const passos = Array.from(document.querySelectorAll(".passo"));
+  const indice = document.getElementById("lista-indice");
+
+  // Tema e tamanho de letra
+  if (estado.tema) raiz.dataset.tema = estado.tema;
+  else if (window.matchMedia("(prefers-color-scheme: dark)").matches) raiz.dataset.tema = "escuro";
+  let tam = estado.tam || 18;
+  raiz.style.setProperty("--tam", tam + "px");
+
+  document.getElementById("btn-tema").onclick = () => {
+    raiz.dataset.tema = raiz.dataset.tema === "escuro" ? "claro" : "escuro";
+    estado.tema = raiz.dataset.tema; salvar();
+  };
+  document.getElementById("btn-maior").onclick = () => { tam = Math.min(26, tam + 2); raiz.style.setProperty("--tam", tam+"px"); estado.tam = tam; salvar(); };
+  document.getElementById("btn-menor").onclick = () => { tam = Math.max(14, tam - 2); raiz.style.setProperty("--tam", tam+"px"); estado.tam = tam; salvar(); };
+
+  // Índice + checkboxes
+  passos.forEach((p, i) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<a href="#${p.id}">${p.dataset.titulo}</a>`;
+    li.querySelector("a").addEventListener("click", (e) => { if (document.body.classList.contains("foco")) { e.preventDefault(); irPara(i); } });
+    indice.appendChild(li);
+    const cb = p.querySelector(".concluir input");
+    cb.checked = !!(estado.feitos && estado.feitos[p.id]);
+    cb.addEventListener("change", () => {
+      estado.feitos = estado.feitos || {};
+      estado.feitos[p.id] = cb.checked; salvar(); atualizar();
+      if (cb.checked && document.body.classList.contains("foco") && i < passos.length - 1) setTimeout(() => irPara(i + 1), 400);
+    });
+  });
+
+  function atualizar(){
+    let feitos = 0;
+    passos.forEach((p, i) => {
+      const ok = p.querySelector(".concluir input").checked;
+      p.classList.toggle("feito", ok);
+      indice.children[i].classList.toggle("feito", ok);
+      if (ok) feitos++;
+    });
+    document.getElementById("barra-progresso").style.width = (feitos / passos.length * 100) + "%";
+    document.getElementById("texto-progresso").textContent =
+      feitos === passos.length ? `🎉 Todos os ${passos.length} passos concluídos! Parabéns!` : `${feitos} de ${passos.length} passos concluídos`;
+  }
+
+  // Modo foco
+  let atual = estado.atual || 0;
+  function irPara(i){
+    atual = Math.max(0, Math.min(passos.length - 1, i));
+    passos.forEach((p, j) => p.classList.toggle("ativo", j === atual));
+    estado.atual = atual; salvar();
+    document.getElementById("btn-anterior").disabled = atual === 0;
+    document.getElementById("btn-proximo").disabled = atual === passos.length - 1;
+    window.scrollTo(0, 0);
+  }
+  const btnFoco = document.getElementById("btn-foco");
+  function definirFoco(lig){
+    document.body.classList.toggle("foco", lig);
+    btnFoco.setAttribute("aria-pressed", lig);
+    estado.foco = lig; salvar();
+    if (lig) {
+      const primeiroPendente = passos.findIndex(p => !p.querySelector(".concluir input").checked);
+      irPara(primeiroPendente === -1 ? atual : primeiroPendente);
+    }
+  }
+  btnFoco.onclick = () => definirFoco(!document.body.classList.contains("foco"));
+  document.getElementById("btn-anterior").onclick = () => irPara(atual - 1);
+  document.getElementById("btn-proximo").onclick = () => irPara(atual + 1);
+
+  document.getElementById("btn-zerar").onclick = () => {
+    if (!confirm("Desmarcar todos os passos e recomeçar?")) return;
+    estado.feitos = {}; estado.atual = 0; salvar();
+    passos.forEach(p => p.querySelector(".concluir input").checked = false);
+    atualizar(); if (document.body.classList.contains("foco")) irPara(0);
+  };
+
+  // Botões copiar
+  document.querySelectorAll(".codigo").forEach((bloco) => {
+    const btn = document.createElement("button");
+    btn.className = "copiar"; btn.textContent = "📋 Copiar";
+    btn.onclick = async () => {
+      const texto = bloco.querySelector("pre").innerText;
+      try { await navigator.clipboard.writeText(texto); }
+      catch(e) { const t = document.createElement("textarea"); t.value = texto; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+      btn.textContent = "✅ Copiado!"; btn.classList.add("ok");
+      setTimeout(() => { btn.textContent = "📋 Copiar"; btn.classList.remove("ok"); }, 1800);
+    };
+    bloco.appendChild(btn);
+  });
+
+  atualizar();
+  if (estado.foco) definirFoco(true);
+})();
+</script>
+</body>
+</html>

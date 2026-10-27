@@ -1,0 +1,13 @@
+# Sobe o Café da Vila localmente com um único comando:
+#   docker compose up --build
+# Depois abra: http://localhost:4280
+services:
+  cafe-da-vila:
+    build: .
+    container_name: cafe-da-vila
+    ports:
+      - "4280:4280"
+    volumes:
+      # Liga a pasta "app" do seu PC ao container:
+      # edite o HTML/CSS e é só recarregar a página.
+      - ./app:/projeto/app

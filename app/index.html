@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Café da Vila ☕</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="logo">☕ Café da Vila</div>
+    <nav>
+      <a href="#cardapio">Cardápio</a>
+      <a href="#pedido">Fazer pedido</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>O cafezinho mais gostoso da vila</h1>
+    <p>Uma cafeteria <strong>fictícia</strong> criada para aprender Azure Static Web Apps.</p>
+    <a class="botao" href="#cardapio">Ver o cardápio</a>
+  </section>
+
+  <main>
+    <section id="cardapio">
+      <h2>📋 Cardápio do dia</h2>
+      <p class="dica">Estes itens vêm da nossa <strong>API</strong> (<code>/api/cardapio</code>).</p>
+      <div id="lista-cardapio" class="grade">
+        <p class="carregando">Carregando o cardápio...</p>
+      </div>
+    </section>
+
+    <section id="pedido">
+      <h2>🛎️ Faça seu pedido</h2>
+      <form id="form-pedido">
+        <label for="nome">Seu nome</label>
+        <input id="nome" name="nome" required placeholder="Ex.: Ana">
+
+        <label for="item">O que você quer?</label>
+        <select id="item" name="item" required>
+          <option value="">Escolha um item...</option>
+        </select>
+
+        <label for="quantidade">Quantidade</label>
+        <input id="quantidade" name="quantidade" type="number" min="1" max="10" value="1" required>
+
+        <button type="submit" class="botao">Enviar pedido</button>
+      </form>
+      <div id="resposta-pedido" class="resposta" hidden></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Café da Vila — projeto de estudo hospedado no <strong>Azure Static Web Apps</strong>.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

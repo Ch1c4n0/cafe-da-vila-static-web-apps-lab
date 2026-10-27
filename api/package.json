@@ -1,0 +1,12 @@
+{
+  "name": "cafe-da-vila-api",
+  "version": "1.0.0",
+  "description": "API do Café da Vila (Azure Functions)",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.5.0"
+  }
+}
